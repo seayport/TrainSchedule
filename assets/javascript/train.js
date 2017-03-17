@@ -1,15 +1,27 @@
-// SETUP VARIABLES
+$(document).ready(function() {
+// initialize firebase
 // =========================================
-var authKey = "9d4a8986921972b65754ea0809d47c84:12:74623931";
+  var config = {
+      apiKey: "AIzaSyAJS4YQWU5DmESeYueG1qH1NGkjv3DncEY",
+      authDomain: "classfirebase-2da39.firebaseapp.com",
+      databaseURL: "https://classfirebase-2da39.firebaseio.com",
+      storageBucket: "classfirebase-2da39.appspot.com",
+      messagingSenderId: "72301977281"
+    };
 
-// Search Parameters
-var queryTerm = "";
-var numResults = 0;
-var startYear = 0;
-var endYear = 0;
+  firebase.initializeApp(config);
+
+//create a variable to reference the database
+  var dataRef = firebase.database();
+
+// Set up variables
+  var trainName = "";
+  var destination = "";
+  var frequency = 0;
+  var endYear = 0;
 
 // URL Base
-var queryURLBase = "http://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=" + authKey;
+
 
 // FUNCTIONS
 // =========================================
