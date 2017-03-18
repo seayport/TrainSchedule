@@ -2,135 +2,104 @@ $(document).ready(function() {
 // initialize firebase
 // =========================================
   var config = {
-      apiKey: "AIzaSyAJS4YQWU5DmESeYueG1qH1NGkjv3DncEY",
-      authDomain: "classfirebase-2da39.firebaseapp.com",
-      databaseURL: "https://classfirebase-2da39.firebaseio.com",
-      storageBucket: "classfirebase-2da39.appspot.com",
-      messagingSenderId: "72301977281"
+      apiKey: "AIzaSyCKuo8Y26m59VgbsfLcsWcxkxhqeRVwwhE",
+      authDomain: "trainschedule-12246.firebaseapp.com",
+      databaseURL: "https://trainschedule-12246.firebaseio.com",
+      storageBucket: "trainschedule-12246.appspot.com",
+      messagingSenderId: "832723061501"
     };
 
   firebase.initializeApp(config);
 
+  //display current time//console.log(moment().format("DD/MM/YY hh:mm A"));
+  var clientTime = (moment().format("MM/DD/YY hh:mm A"));
+    $("#clientTime").append(clientTime);
+
 //create a variable to reference the database
-  var dataRef = firebase.database();
+  var database = firebase.database();
 
 // Set up variables
   var trainName = "";
   var destination = "";
+  var start = 0;
   var frequency = 0;
-  var endYear = 0;
+  var nextTime = [];
 
-// URL Base
+ // Capture Button Click
+    $("#add-train").on("click", function() {
+    
+    // Don't refresh the page!
+      event.preventDefault();
 
+    // Grabbed values from text boxes
+      trainName = $("#train-name-input").val().trim();
+      destination = $("#place-input").val().trim();
+      start = $("#start-input").val().trim();
+      frequency = $("#frequency-input").val().trim();
 
-// FUNCTIONS
-// =========================================
+      console.log(start);
 
-function runQuery(numArticles, queryURL) {
+      // Code for handling the push
+      database.ref("/trains").set({
+        trainName: trainName,
+        destination: place,
+        start: start,
+        frequency: frequency,
+        //client timestamp
+        dateAdded: firebase.database.ServerValue.TIMESTAMP,
+      });
+ 
+     // Clear the form
+    $("#train-name-input").val(" ");
+    $("#place-input").val(" ");
+    $("#start-input").val(" ");
+    $("#frequency-input").val(" ");
+ });
 
-  // AJAX Function
-  $.ajax({
-    url: queryURL,
-    method: "GET"
-  }).done(function(NYTData) {
+    // Firebase watcher + initial loader HINT: .on("value")
+  database.ref("/trains").on("child_added", function(childSnapshot) {
+ 
+ console.log(snapshot.val().name);
+ 
+// Store everything into a variable. t stand for train ya'll.
+    var tName = childSnapshot.val().trainName;
+    var tDestination = childSnapshot.val().Destination;
+    var tFrequency = childSnapshot.val().frequency;
+    var tFirstTrain = childSnapshot.val().firstTrainTime;
 
-    // Logging to Console
-    console.log("------------------");
-    console.log(queryURL);
-    console.log("------------------");
-    console.log(numArticles);
-    console.log(NYTData);
+// To calculate the minutes till arrival, take the current time in unix subtract the FirstTrain 
+//time and find the modulus between the difference and the frequency  
+    var differenceTimes = moment().diff(moment.unix(tFirstTrain), "minutes");
+    var tRemainder = moment().diff(moment.unix(tFirstTrain), "minutes") % tFrequency;
+    var tMinutes = tFrequency - tRemainder;
 
-    // Clear the wells from the previous run
-    $("#well-section").empty();
-
-    for (var i = 0; i < numArticles; i++) {
-
-      // Start Dumping to HTML Here
-      var wellSection = $("<div>");
-      wellSection.addClass("well");
-      wellSection.attr("id", "article-well-" + i);
-      $("#well-section").append(wellSection);
-
-      // Check if things exist
-      if (NYTData.response.docs[i].headline !== "null") {
-        console.log(NYTData.response.docs[i].headline.main);
-        $("#article-well-" + i)
-          .append("<h3>" + NYTData.response.docs[i].headline.main + "</h3>");
-      }
-
-      // Check if the byline
-      if (NYTData.response.docs[i].byline && NYTData.response.docs[i].byline.original) {
-        console.log(NYTData.response.docs[i].byline.original);
-        $("#article-well-" + i).append("<h5>" + NYTData.response.docs[i].byline.original + "</h5>");
-      }
-
-      // Attach the content to the appropriate well
-      $("#article-well-" + i).append("<h5>" + NYTData.response.docs[i].section_name + "</h5>");
-      $("#article-well-" + i).append("<h5>" + NYTData.response.docs[i].pub_date + "</h5>");
-      $("#article-well-" + i)
-        .append(
-          "<a href=" + NYTData.response.docs[i].web_url + ">" +
-          NYTData.response.docs[i].web_url + "</a>"
-        );
-
-      console.log(NYTData.response.docs[i].section_name);
-      console.log(NYTData.response.docs[i].pub_date);
-      console.log(NYTData.response.docs[i].web_url);
+// To calculate the arrival time, add the tMinutes to the currrent time
+    var tArrival = moment().add(tMinutes, "m").format("hh:mm A");
+     
+    if (tMinutes <= 5 ) {
+    $("#5min").append(
+        "<tr>" +
+        "<td>" + tName + "</td>" +
+        "<td>" + tDestination + "</td>" +
+        "<td>" + tFrequency + "</td>" +
+        "<td>" + tArrival + "</td>" +
+        "<td><font color='red'>" + tMinutes + "</td></font>" + "</tr>");
+    return;
     }
 
-  });
-
-}
-
-// MAIN PROCESSES
-// =========================================
-
-$("#search-btn").on("click", function(event) {
-  // This line allows us to take advantage of the HTML "submit" property
-  // This way we can hit enter on the keyboard and it registers the search
-  // (in addition to clicks).
-  event.preventDefault();
-
-  // Get Search Term
-  queryTerm = $("#search").val().trim();
-
-  // Add in the Search Term
-  var newURL = queryURLBase + "&q=" + queryTerm;
-
-  // Get the Number of Records
-  numResults = $("#num-records").val();
-
-  // Get the Start Year and End Year
-  startYear = $("#start-year").val().trim();
-  endYear = $("#end-year").val().trim();
-
-  if (parseInt(startYear)) {
-
-    // Add the necessary fields
-    startYear += "0101";
-
-    // Add the date information to the URL
-    newURL = newURL + "&begin_date=" + startYear;
-  }
-
-  if (parseInt(endYear)) {
-
-    // Add the necessary fields
-    endYear += "0101";
-
-    // Add the date information to the URL
-    newURL = newURL + "&end_date=" + endYear;
-  }
-
-  // Send the AJAX Call the newly assembled URL
-  runQuery(numResults, newURL);
+//Pushing to the DOM
+    $("#mainTable").append(
+        "<tr>" +
+        "<td>" + tName + "</td>" +
+        "<td>" + tDestination + "</td>" +
+        "<td>" + tFrequency + "</td>" +
+        "<td>" + tArrival + "</td>" +
+        "<td>" + tMinutes + "</td>" + "</tr>"
+    );   
+// Handle the errors
+  }, function(errorObject) {
+      console.log("Errors handled: " + errorObject.code);
+   });
 
 });
-
-// 1. Retrieve user inputs and convert to variables
-// 2. Use those variable to run an AJAX call to the New York Times.
-// 3. Break down the NYT Object into useable fields
-// 4. Dynamically generate html content
-
-// 5. Dealing with "edge cases" -- bugs or situations that are not intuitive.
+    

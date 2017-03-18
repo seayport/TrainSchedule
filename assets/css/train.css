@@ -1,0 +1,18 @@
+.jumbotron{
+	color: white;
+	background-color: #335170;
+}
+.panel-title{
+
+	color: white;
+}
+.panel-primary>.panel-heading {
+	background-color: #335170;
+}
+body {
+
+	background-image: url("../images/train-image.jpg");
+	background-repeat: no-repeat;
+	background-size:cover;
+	opacity: .90;
+}
