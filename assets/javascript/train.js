@@ -26,8 +26,7 @@ $(document).ready(function() {
   var nextTime = [];
 
  // Capture Button Click
-    $("#add-train").on("click", function() {
-    
+    $("#add-train-btn").on("click", function() {
     // Don't refresh the page!
       event.preventDefault();
 
@@ -40,9 +39,9 @@ $(document).ready(function() {
       console.log(start);
 
       // Code for handling the push
-      database.ref("/trains").set({
+      database.ref().set({
         trainName: trainName,
-        destination: place,
+        destination: destination,
         start: start,
         frequency: frequency,
         //client timestamp
@@ -57,7 +56,7 @@ $(document).ready(function() {
  });
 
     // Firebase watcher + initial loader HINT: .on("value")
-  database.ref("/trains").on("child_added", function(childSnapshot) {
+  database.ref().on("child_added", function(childSnapshot) {
  
  console.log(snapshot.val().name);
  
